@@ -1,0 +1,170 @@
+Sub Main
+End Sub
+
+Sub CheckCell
+iSheet = thiscomponent.sheets.getByName("Input")
+oSheet = thiscomponent.sheets.getByName("Output")
+oFunc = GetProcessServiceManager().createInstance("com.sun.star.sheet.FunctionAccess") 
+rem oCell = oSheet.getCellRangeByName("$B$9")
+rem oCell.setString("Hello World")
+rem Row_No = 5
+rem MsgBox Range.("A" & Row_No).Value
+Dim rMsgBox As Integer
+rem rMsgBox = MsgBox(oCell.getFormula)
+
+Dim iText, liv_precisione As Double
+  iText = InputBox ("Please enter a precision level value (i.g. 0.50):    - use dot instead , as decimal separator -","Livello di precisione")
+  MsgBox ( iText , 64, "Confirmation of phrase")
+  If (iText <= 0.0) then 
+   MsgBox("Wrong value. I will set precision level to 0.5")
+   iText = 0.5
+   Else MsgBox("mmm")
+  Endif
+  cell = oSheet.getCellByPosition(1,1)
+  cell.setString("Livello di precisione: ")
+  cell = oSheet.getCellByPosition(2,1)
+  cell.setValue(iText)
+  oColumn = oSheet.getColumns.getByIndex( 1 )
+  oColumn.width=4000
+  oColumn = oSheet.getColumns.getByIndex( 2 )
+  oColumn.width=4000
+
+ 
+  liv_precisione	= oSheet.getCellRangeByName("C2").Value
+
+rem quindi:
+Dim false_positive As Integer
+Dim true_negative As Integer
+Dim false_negative As Integer
+Dim true_positive As Integer
+
+rem Cell = Sheet.getCellByPosition(2, 9)
+min 			= iSheet.getCellRangeByName("$E$4").Value
+max 			= iSheet.getCellRangeByName("$E$5").Value
+max_rows=8
+rem Dim fResult As Integer
+rem fResult = oFunc.callFunction("CARATT.UNI", "97")
+rem fResult = oFunc.callFunction("CHAR", 97)
+rem fResult = oFunc.callFunction("UNICHAR", "97")
+rem fResult = oFunc.callFunction("UNICODE", "97")
+rem fResult = oFunc.callFunction("SUM",Array(1, 2, 3))
+rMsgBox = MsgBox(" Soglia min: "+min+" - Soglia max: "+max+" - Livello di precisione: "+liv_precisione)
+pos=0 rem definisce il numero di colonne
+i=0   rem definisce il contatore da min a max e quindi il numero di righe
+
+while min+i <= max
+  rem RIGA 7
+  cell = oSheet.getCellByPosition(3+pos,6)
+  rem MsgBox(min+i)
+  If min+i < max Then cell.setString("...")
+  If i = 0 Then  cell.setString("Soglia min")
+  If min+i = max Then  cell.setString("Soglia max")
+  
+  rem RIGA 8
+  cell = oSheet.getCellByPosition(3+pos,7)
+  cell.setString(min+i)
+  
+  k=0
+  while k <= max_rows
+   rem RIGA 9
+   cell = oSheet.getCellByPosition(3+pos,8+k)
+   P = oSheet.getCellRangeByName("$A$9").getString
+   rem If P = "P=0" Then   cell.setString(min+i) Else 
+   cell.setFormula("=SE($A$9=""P=0"";SE(C8>$E$4;""False positive"";""False negative"");SE(C8>$E$4;""True positive"";""True negative""))")
+   rem cell.setString("xxx")
+   k=k+1
+  wend
+  If i = 0 Then 
+   rem PRIMA RIGA SOTTO: Conta false positive
+   cell = oSheet.getCellByPosition(2,8+k+1)
+   P = oSheet.getCellRangeByName("$A$9").getString
+   cell.setString("Conta: True positive")
+
+   rem SECONDA RIGA SOTTO: Conta false positive
+   cell = oSheet.getCellByPosition(2,8+k+2)
+   P = oSheet.getCellRangeByName("$A$9").getString
+   cell.setString("Conta: False positive")
+   
+   rem TERZA RIGA SOTTO: Conta false positive
+   cell = oSheet.getCellByPosition(2,8+k+3)
+   P = oSheet.getCellRangeByName("$A$9").getString
+   cell.setString("Conta: True negative")
+   
+   rem QUARTA RIGA SOTTO: Conta false positive
+   cell = oSheet.getCellByPosition(2,8+k+4)
+   P = oSheet.getCellRangeByName("$A$9").getString
+   cell.setString("Conta: False negative")
+  End if
+
+
+   rem Conta True positive
+   cell = oSheet.getCellByPosition(3+pos,8+max_rows+2)
+   colonna = cell.Columns.getByIndex(0).getName()
+   cell.setFormula("=CONTA.PIÙ.SE("+colonna+"9:"+colonna+""+(6+max_rows)+";""True positve"")")
+
+   rem Conta False positive
+   cell = oSheet.getCellByPosition(3+pos,8+max_rows+3)
+   cell.setFormula("=CONTA.PIÙ.SE("+colonna+"9:"+colonna+""+(6+max_rows)+";""False positive"")")
+
+   
+   rem Conta True negative
+   cell = oSheet.getCellByPosition(3+pos,8+max_rows+4)
+   cell.setFormula("=CONTA.PIÙ.SE("+colonna+"9:"+colonna+""+(6+max_rows)+";""True negative"")")
+
+   rem Conta False negative
+   cell = oSheet.getCellByPosition(3+pos,8+max_rows+5)
+   cell.setFormula("=CONTA.PIÙ.SE("+colonna+"9:"+colonna+""+(6+max_rows)+";""False negative"")")
+
+  i = i+liv_precisione
+  pos=pos+1
+wend
+
+rem -------------------------------
+rem Dim oSheet 'Sheet containing the chart
+rem Dim oRect 'How big is the chart
+rem Dim oCharts 'Charts in the sheet
+rem Dim oChart 'Created chart
+rem Dim oAddress 'Address of data to plot
+rem Dim sName$ 'Chart name
+rem Dim oChartDoc 'Embedded chart object
+rem Dim oTitle 'Chart title object 
+rem Dim oDiagram 'Inserted diagram (data).
+rem Dim sDataRng$ 'Where is the data
+rem Dim oCalcDoc
+
+rem oCalcDoc = CreateCalcForChart()
+
+rem sName = "Example_01"
+rem sDataRng = "W71:AD120"
+rem oSheets = ThisComponent.getSheets()
+rem oSheet  = oSheets.getbyIndex(2)
+rem oAddress = oSheet.getCellRangeByName( sDataRng ).getRangeAddress()
+rem oCharts = oSheet.getCharts()
+
+rem If NOT oCharts.hasByName(sName) Then
+rem oRect = createObject("com.sun.star.awt.Rectangle")
+rem oRect.X = 10000
+rem oRect.Y = 10000
+rem oRect.width = 200000
+rem oRect.Height= 100000
+rem ' The rectangle identifies the dimensions in 1/100 mm.
+rem ' The address is the location of the data.
+rem ' True indicates that column headings should be used.
+rem ' False indicates that Row headings should not be used.
+rem oCharts.addNewByName(sName, oRect, Array(oAddress), False, True)
+rem End If
+
+rem oChart = oCharts.getByName( sName )  
+rem oChart.setRanges(Array(oAddress))
+rem oChartDoc = oChart.getEmbeddedObject()
+rem 'oChartDoc.attachData(oAddress)  
+rem oTitle = oChartDoc.getTitle()  
+rem oTitle.String = "Speed - Torque"
+
+' Create a diagram.
+rem oDiagram = oChartDoc.createInstance( "com.sun.star.chart.LineDiagram" )
+rem oChartDoc.setDiagram( oDiagram )  
+rem oDiagram = oChartDoc.getDiagram()
+rem oDiagram.DataCaption = com.sun.star.chart.ChartDataCaption.VALUE
+rem oDiagram.DataRowSource = com.sun.star.chart.ChartDataRowSource.COLUMNS
+End Sub
